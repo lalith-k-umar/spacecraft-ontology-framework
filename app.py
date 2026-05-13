@@ -212,128 +212,129 @@ if st.session_state.auto_refresh:
     while st.session_state.auto_refresh:
         update_system()
         
-        # Display based on selected tab
-        if tab == "🏠 Dashboard":
-            # Fault Summary
-            render_fault_summary(st.session_state.active_faults)
+        with placeholder.container():
+            # Display based on selected tab
+            if tab == "🏠 Dashboard":
+                # Fault Summary
+                render_fault_summary(st.session_state.active_faults)
             
-            # Subsystem Overview
-            render_subsystem_overview(st.session_state.telemetry)
+                # Subsystem Overview
+                render_subsystem_overview(st.session_state.telemetry)
             
-            # Fault Alert Badges
-            if st.session_state.active_faults:
+                # Fault Alert Badges
+                if st.session_state.active_faults:
+                    st.markdown("---")
+                    render_alert_badges(st.session_state.active_faults)
+            
+                # Fault Console
+                logs = logger.get_logs(limit=20)
+                render_fault_console(st.session_state.active_faults, logs)
+            
+                # Live Charts
                 st.markdown("---")
-                render_alert_badges(st.session_state.active_faults)
-            
-            # Fault Console
-            logs = logger.get_logs(limit=20)
-            render_fault_console(st.session_state.active_faults, logs)
-            
-            # Live Charts
-            st.markdown("---")
-            telemetry_history = telemetry_generator.get_telemetry_history(limit=60)
-            render_telemetry_charts(telemetry_history)
+                telemetry_history = telemetry_generator.get_telemetry_history(limit=60)
+                render_telemetry_charts(telemetry_history)
         
-        elif tab == "📊 Detailed View":
-            # Detailed Metrics
-            render_detailed_metrics(st.session_state.telemetry)
+            elif tab == "📊 Detailed View":
+                # Detailed Metrics
+                render_detailed_metrics(st.session_state.telemetry)
             
-            st.markdown("---")
-            st.markdown("### ⚡ Subsystem Deep Analysis")
+                st.markdown("---")
+                st.markdown("### ⚡ Subsystem Deep Analysis")
             
-            subsys_tab = st.tabs(["Power", "Thermal", "Communication", "AOCS"])
+                subsys_tab = st.tabs(["Power", "Thermal", "Communication", "AOCS"])
             
-            with subsys_tab[0]:
-                render_power_subsystem(st.session_state.telemetry)
+                with subsys_tab[0]:
+                    render_power_subsystem(st.session_state.telemetry)
             
-            with subsys_tab[1]:
-                render_thermal_subsystem(st.session_state.telemetry)
+                with subsys_tab[1]:
+                    render_thermal_subsystem(st.session_state.telemetry)
             
-            with subsys_tab[2]:
-                render_communication_subsystem(st.session_state.telemetry)
+                with subsys_tab[2]:
+                    render_communication_subsystem(st.session_state.telemetry)
             
-            with subsys_tab[3]:
-                render_aocs_subsystem(st.session_state.telemetry)
+                with subsys_tab[3]:
+                    render_aocs_subsystem(st.session_state.telemetry)
             
-            # Charts
-            st.markdown("---")
-            telemetry_history = telemetry_generator.get_telemetry_history(limit=60)
+                # Charts
+                st.markdown("---")
+                telemetry_history = telemetry_generator.get_telemetry_history(limit=60)
             
-            col1, col2 = st.columns(2)
-            with col1:
-                render_orientation_chart(telemetry_history)
-            with col2:
-                render_power_balance_chart(telemetry_history)
-        
-        elif tab == "🔬 Ontology Inspector":
-            st.markdown("### 🔍 Semantic Ontology Analysis")
-            
-            inspector_tab = st.tabs(["Statistics", "Classes", "Individuals", "Inferred Faults", "Rules"])
-            
-            with inspector_tab[0]:
-                render_ontology_stats()
-            
-            with inspector_tab[1]:
-                render_ontology_relationships()
-            
-            with inspector_tab[2]:
-                render_individuals_browser()
-            
-            with inspector_tab[3]:
-                render_inferred_faults()
-            
-            with inspector_tab[4]:
-                render_reasoning_rules()
-        
-        elif tab == "📋 System Logs":
-            st.markdown("### 📋 System Event Logs")
-            
-            logs = logger.get_logs(limit=100)
-            
-            if logs:
-                # Filter options
                 col1, col2 = st.columns(2)
                 with col1:
-                    filter_level = st.multiselect(
-                        "Filter by Level",
-                        ["INFO", "WARNING", "ERROR", "FAULT"],
-                        default=["INFO", "WARNING", "ERROR", "FAULT"]
-                    )
-                
+                    render_orientation_chart(telemetry_history)
                 with col2:
-                    filter_component = st.multiselect(
-                        "Filter by Component",
-                        list(set([log["component"] for log in logs])),
-                        default=None
-                    )
+                    render_power_balance_chart(telemetry_history)
+        
+            elif tab == "🔬 Ontology Inspector":
+                st.markdown("### 🔍 Semantic Ontology Analysis")
+            
+                inspector_tab = st.tabs(["Statistics", "Classes", "Individuals", "Inferred Faults", "Rules"])
+            
+                with inspector_tab[0]:
+                    render_ontology_stats()
+            
+                with inspector_tab[1]:
+                    render_ontology_relationships()
+            
+                with inspector_tab[2]:
+                    render_individuals_browser()
+            
+                with inspector_tab[3]:
+                    render_inferred_faults()
+            
+                with inspector_tab[4]:
+                    render_reasoning_rules()
+        
+            elif tab == "📋 System Logs":
+                st.markdown("### 📋 System Event Logs")
+            
+                logs = logger.get_logs(limit=100)
+            
+                if logs:
+                    # Filter options
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        filter_level = st.multiselect(
+                            "Filter by Level",
+                            ["INFO", "WARNING", "ERROR", "FAULT"],
+                            default=["INFO", "WARNING", "ERROR", "FAULT"]
+                        )
                 
-                # Display logs
-                filtered_logs = [
-                    log for log in logs
-                    if log["level"] in filter_level and 
-                    (not filter_component or log["component"] in filter_component)
-                ]
+                    with col2:
+                        filter_component = st.multiselect(
+                            "Filter by Component",
+                            list(set([log["component"] for log in logs])),
+                            default=None
+                        )
                 
-                if filtered_logs:
-                    for log in reversed(filtered_logs[-50:]):  # Show last 50
-                        timestamp = log["timestamp"]
-                        level = log["level"]
-                        component = log["component"]
-                        message = log["message"]
+                    # Display logs
+                    filtered_logs = [
+                        log for log in logs
+                        if log["level"] in filter_level and 
+                        (not filter_component or log["component"] in filter_component)
+                    ]
+                
+                    if filtered_logs:
+                        for log in reversed(filtered_logs[-50:]):  # Show last 50
+                            timestamp = log["timestamp"]
+                            level = log["level"]
+                            component = log["component"]
+                            message = log["message"]
                         
-                        if level == "FAULT":
-                            color = "#FF0000"
-                        elif level == "ERROR":
-                            color = "#FF3300"
-                        elif level == "WARNING":
-                            color = "#FFAA00"
-                        else:
-                            color = "#00FF00"
+                            if level == "FAULT":
+                                color = "#FF0000"
+                            elif level == "ERROR":
+                                color = "#FF3300"
+                            elif level == "WARNING":
+                                color = "#FFAA00"
+                            else:
+                                color = "#00FF00"
                         
-                        log_line = f"<span style='color: {color}; font-weight: bold;'>[{timestamp}]</span> <span style='color: #888;'>[{component}]</span> {message}"
-                        st.markdown(log_line, unsafe_allow_html=True)
-            else:
-                st.info("No logs yet")
+                            log_line = f"<span style='color: {color}; font-weight: bold;'>[{timestamp}]</span> <span style='color: #888;'>[{component}]</span> {message}"
+                            st.markdown(log_line, unsafe_allow_html=True)
+                else:
+                    st.info("No logs yet")
         
         # Auto-refresh with sleep
         time.sleep(refresh_interval)
